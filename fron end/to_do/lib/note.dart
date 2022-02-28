@@ -28,7 +28,7 @@ class Note {
   factory Note.fromMap(Map<String, dynamic> map) {
     return Note(
       id: map['id']?.toInt() ?? 0,
-      note: map['note'] ?? '',
+      note: map['body'] ?? '',
     );
   }
 
