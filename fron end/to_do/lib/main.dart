@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:to_do/create.dart';
 import 'package:to_do/note.dart';
+import 'package:to_do/update.dart';
 import 'package:to_do/urls.dart';
 
 void main() {
@@ -17,6 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -45,8 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void _addNote() {}
-
   _retriveNote() async {
     notes = [];
 
@@ -57,23 +58,58 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
+  void _deleteNote(int id) {
+    client.delete(deleteUrl(id));
+    _retriveNote();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-        itemCount: notes.length,
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            title: Text(notes[index].note),
-          );
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _retriveNote();
         },
+        child: ListView.builder(
+          itemCount: notes.length,
+          itemBuilder: (BuildContext context, int index) {
+            return ListTile(
+              title: Text(notes[index].note),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UpdatePage(
+                            client: client,
+                            id: notes[index].id,
+                            note: notes[index].note,
+                          )),
+                );
+              },
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  _deleteNote(notes[index].id);
+                },
+              ),
+            );
+          },
+        ),
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNote,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CreatePage(
+                      client: client,
+                    )),
+          );
+        },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
